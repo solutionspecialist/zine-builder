@@ -1,0 +1,26 @@
+# --- Project Specifics ---
+# Ignore any temporary test images or mock data you might be using
+tests/data/
+uploads/
+temp/
+
+# --- IDEs & Editors ---
+# If you use VS Code
+.vscode/
+# If you use PyCharm/IntelliJ
+.idea/
+
+# --- Environment & Secret Variables ---
+# Even if you aren't using them now, this is a safety net
+.env
+.flaskenv
+
+# --- Local Streamlit Secrets ---
+# Streamlit uses this for local passwords/API keys
+.streamlit/secrets.toml
+
+# --- Log Files ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
