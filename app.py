@@ -20,15 +20,6 @@ st.title("Garford Zine Builder")
 st.caption("Lorain County Community Arts Project | Elyria, Ohio")
 st.divider()
 
-# Quick State Inspector
-with st.expander("🔍 Current Session State"):
-    for i in range(1, 9):
-        img = st.session_state.pages[i]["image"]
-        if img:
-            st.write(f"Slot {i}: **{img.name}** | Type: {img.type}")
-        else:
-            st.write(f"Slot {i}: *Empty*")
-
 for row_idx in range(1, 9, 2):
     col1, col2 = st.columns(2)
     with col1: page_card(row_idx)
