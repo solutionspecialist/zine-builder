@@ -11,6 +11,8 @@ def image_to_base64(img):
     return base64.b64encode(buffered.getvalue()).decode()
 
 def handle_upload(page_num):
+    print(f"DEBUG: Looking for key {uploader_key}...")
+    print(f"DEBUG: Keys currently in session_state: {list(st.session_state.keys())}")
     """Processes image uploads: handles orientation, color mode, and sizing."""
     v = st.session_state[f"v_{page_num}"]
     uploader_key = f"u_{page_num}_v{v}"
