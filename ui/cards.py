@@ -16,20 +16,32 @@ def handle_upload(page_num):
     uploader_key = f"u_{page_num}_v{v}"
     uploaded_file = st.session_state.get(uploader_key)
     
+    # Increase the limit to handle professional scans (default is ~89 megapixels)
+    Image.MAX_IMAGE_PIXELS = None 
+    
     if uploaded_file:
         try:
             img = Image.open(uploaded_file)
             img = ImageOps.exif_transpose(img)
             
-            # Convert to RGBA to handle PNG transparency and indexed palettes safely
+            # Convert to RGBA for consistency
             img = img.convert("RGBA")
             
-            # Resize for UI performance; 1600px is plenty for the zine generator logic
+            # Use a faster Resampling for the UI thumbnail
             img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
             
             st.session_state.pages[page_num]["image"] = img
+            
+            # CRITICAL: Trigger a rerun so the UI actually shows the change
+            st.rerun() 
+            
         except Exception as e:
-            st.error(f"Error loading image for Page {page_num}: {e}")
+            st.error(f"Critical Error on Page {page_num}: {e}")
+            # Log to terminal for a better paper trail
+            print(f"FAILED UPLOAD: Page {page_num} | {e}")
+    else:
+        # If this fires, it means the file was too big or rejected by the server
+        print(f"DEBUG: No file found in {uploader_key}. Check maxUploadSize.")
 
 def toggle_spread(page_num):
     """Switches between single page and 2-page spread mode."""
