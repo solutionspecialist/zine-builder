@@ -11,16 +11,9 @@ def image_to_base64(img):
     return base64.b64encode(buffered.getvalue()).decode()
 
 def handle_upload(page_num):
-    # 1. Immediate visual feedback
-    st.toast(f"🌀 Callback triggered for Page {page_num}")
-    
-    # 2. Safely get the version
+    # Safely get the version
     v = st.session_state.get(f"v_{page_num}", 0)
     uploader_key = f"u_{page_num}_v{v}"
-    
-    # 3. List all keys to the UI so you can see them
-    all_keys = [k for k in st.session_state.keys() if k.startswith(f"u_{page_num}")]
-    st.write(f"Looking for: `{uploader_key}` | Found keys: `{all_keys}`")
     
     uploaded_file = st.session_state.get(uploader_key)
     
@@ -32,11 +25,9 @@ def handle_upload(page_num):
             
             st.session_state.pages[page_num]["image"] = img
             st.toast("✅ Image processed!")
-            st.rerun()
         except Exception as e:
             st.error(f"Error: {e}")
-    else:
-        st.warning(f"No file found for key: {uploader_key}")
+
 def toggle_spread(page_num):
     """Switches between single page and 2-page spread mode."""
     st.session_state.pages[page_num]["is_spread"] = not st.session_state.pages[page_num]["is_spread"]
@@ -73,11 +64,13 @@ def page_card(page_num):
             
             col1, col2 = st.columns(2)
             with col1:
+                # 1. Rotate Button
                 if st.button("🔄 Rotate", key=f"rot_{page_num}", use_container_width=True):
                     img = page_data["image"].rotate(-90, expand=True)
                     st.session_state.pages[page_num]["image"] = img
-                    st.rerun()
+                    st.rerun()  # Forces immediate preview update
                 
+                # 2. Fill/Fit Button
                 mode = "fill" if page_data["scale_mode"] == "fit" else "fit"
                 btn_label = "✂️ Use Fill" if mode == "fill" else "🖼️ Use Fit"
                 if st.button(btn_label, key=f"mode_{page_num}", use_container_width=True):
@@ -85,12 +78,12 @@ def page_card(page_num):
                     st.rerun()
 
             with col2:
+                # 3. Clear Button
                 if st.button("🗑️ Clear", key=f"clr_{page_num}", use_container_width=True):
                     st.session_state.pages[page_num]["image"] = None
                     st.session_state.pages[page_num]["is_spread"] = False
                     st.session_state[f"v_{page_num}"] += 1
                     st.rerun()
-                
                 if page_num in [1, 2, 4, 6]:
                     target = 8 if page_num == 1 else page_num + 1
                     label = "🎨 Wraparound" if page_num == 1 else f"🔗 Link P{target}"

@@ -18,7 +18,7 @@ def sidebar_controls():
         "External Margin (inches)", 
         min_value=0.0, 
         max_value=1.0, 
-        value=st.session_state.get('margin_inches', 0.25),
+        value=st.session_state.get('margin_inches', 0.0),
         step=0.05,
         help="White space around the entire 8-page sheet edge."
     )
