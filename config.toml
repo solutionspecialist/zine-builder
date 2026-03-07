@@ -1,0 +1,15 @@
+[server]
+# Disabling CORS/XSRF can sometimes prevent "handshake" resets on mobile
+enableCORS = false
+enableXsrfProtection = false
+# Keep the session alive for 5 minutes even if the connection drops
+disconnectedSessionTTL = 300
+
+# Increase the heartbeat frequency to keep the connection "warm"
+# (Note: These are advanced hidden flags in some Streamlit versions)
+# Setting a longer timeout for the websocket
+webSocketCompressionLevel = 0
+
+[browser]
+# Turn off usage stats to reduce background pings that might fail
+gatherUsageStats = false
