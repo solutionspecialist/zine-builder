@@ -66,10 +66,14 @@ def page_card(page_num):
             with col1:
                 # 1. Rotate Button
                 if st.button("🔄 Rotate", key=f"rot_{page_num}", use_container_width=True):
-                    img = page_data["image"].rotate(-90, expand=True)
-                    st.session_state.pages[page_num]["image"] = img
-                    st.rerun()  # Forces immediate preview update
-                
+                    # Store rotation in session state instead of modifying image directly
+                    current_rotation = st.session_state.pages[page_num].get("rotation", 0)
+                    new_rotation = (current_rotation - 90) % 360
+                    st.session_state.pages[page_num]["rotation"] = new_rotation
+                    # Apply rotation to the stored image
+                    if page_data["image"]:
+                        st.session_state.pages[page_num]["image"] = page_data["image"].rotate(-90, expand=True)
+                    st.rerun()
                 # 2. Fill/Fit Button
                 mode = "fill" if page_data["scale_mode"] == "fit" else "fit"
                 btn_label = "✂️ Use Fill" if mode == "fill" else "🖼️ Use Fit"
