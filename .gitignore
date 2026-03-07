@@ -1,26 +1,36 @@
-# --- Project Specifics ---
-# Ignore any temporary test images or mock data you might be using
-tests/data/
+# --- Python / Environment ---
+**/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# --- Streamlit ---
+.streamlit/
+!/.streamlit/config.toml
+# Note: We ignore secrets but keep config if you ever customize themes
+
+# --- Project Specific Assets ---
+# Ignore the generated zine PDFs and temporary uploads
+*.pdf
 uploads/
 temp/
+tests/data/
+
+# --- System Junk ---
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # --- IDEs & Editors ---
-# If you use VS Code
 .vscode/
-# If you use PyCharm/IntelliJ
 .idea/
+*.swp
+*.bak
 
-# --- Environment & Secret Variables ---
-# Even if you aren't using them now, this is a safety net
+# --- Secrets & Logs ---
 .env
 .flaskenv
-
-# --- Local Streamlit Secrets ---
-# Streamlit uses this for local passwords/API keys
-.streamlit/secrets.toml
-
-# --- Log Files ---
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
