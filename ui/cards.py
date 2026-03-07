@@ -4,55 +4,45 @@ import base64
 from io import BytesIO
 
 def image_to_base64(img):
+    """Converts PIL image to base64 for browser-safe preview."""
     buffered = BytesIO()
-    # If the image is in RGBA (transparency), we save as PNG to preserve it for the preview
+    # Save as PNG to preserve transparency/quality in the UI preview
     img.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode()
 
 def handle_upload(page_num):
-    """Callback for handling image uploads and EXIF orientation."""
+    """Processes image uploads: handles orientation, color mode, and sizing."""
     v = st.session_state[f"v_{page_num}"]
     uploader_key = f"u_{page_num}_v{v}"
     uploaded_file = st.session_state.get(uploader_key)
     
     if uploaded_file:
         try:
-            st.toast(f"📡 Received {uploaded_file.name}...") # DEBUG
-            
-            # 1. Open the file
             img = Image.open(uploaded_file)
-            
-            # 2. Fix Orientation
             img = ImageOps.exif_transpose(img)
             
-            # 3. CONVERT TO RGBA FIRST (Safest for PNGs)
-            # Some PNGs use "P" (palette) mode which RGB conversion can mangle.
-            # RGBA preserves transparency for the UI preview.
+            # Convert to RGBA to handle PNG transparency and indexed palettes safely
             img = img.convert("RGBA")
             
-            # 4. Resize for the UI (The likely crash point)
-            # We'll use a slightly larger limit but switch to BILINEAR if LANCZOS is failing
-            st.toast(f"📐 Processing dimensions...") # DEBUG
+            # Resize for UI performance; 1600px is plenty for the zine generator logic
             img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
             
-            # 5. Commit to State
             st.session_state.pages[page_num]["image"] = img
-            st.toast(f"✅ Page {page_num} Loaded!") # SUCCESS
-            
         except Exception as e:
-            st.error(f"🚨 Upload error on Page {page_num}: {e}")
-            # Log more details to the streamlit cloud log if available
-            print(f"DEBUG ERROR: {e}") 
+            st.error(f"Error loading image for Page {page_num}: {e}")
 
 def toggle_spread(page_num):
+    """Switches between single page and 2-page spread mode."""
     st.session_state.pages[page_num]["is_spread"] = not st.session_state.pages[page_num]["is_spread"]
 
 def page_card(page_num):
+    """Renders the UI card for an individual zine page."""
     if f"v_{page_num}" not in st.session_state:
         st.session_state[f"v_{page_num}"] = 0
     
     page_data = st.session_state.pages[page_num]
     
+    # Check if this page is 'covered' by a spread from a previous page
     is_covered = False
     if page_num == 8:
         if st.session_state.pages[1].get("is_spread"): is_covered = True
@@ -78,7 +68,6 @@ def page_card(page_num):
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("🔄 Rotate", key=f"rot_{page_num}", use_container_width=True):
-                    # We use expand=True to ensure the dimensions swap correctly (W <-> H)
                     img = page_data["image"].rotate(-90, expand=True)
                     st.session_state.pages[page_num]["image"] = img
                     st.rerun()
