@@ -11,9 +11,6 @@ def image_to_base64(img):
     return base64.b64encode(buffered.getvalue()).decode()
 
 def handle_upload(page_num):
-    # 1. Immediate visual feedback
-    st.toast(f"🌀 Callback triggered for Page {page_num}")
-    
     # 2. Safely get the version
     v = st.session_state.get(f"v_{page_num}", 0)
     uploader_key = f"u_{page_num}_v{v}"
