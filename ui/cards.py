@@ -23,11 +23,13 @@ def page_card(page_num):
     def handle_upload():
         uploader_key = f"uploader_{page_num}"
         if st.session_state[uploader_key]:
-            # Open image and immediately fix orientation tags (EXIF)
             img = Image.open(st.session_state[uploader_key])
             img = ImageOps.exif_transpose(img)
             img = img.convert("RGB")
-            # Store the actual processed PIL object
+            
+            # Resize to a max of 1200px (High quality but efficient)
+            img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+            
             st.session_state.pages[page_num]["image"] = img
 
     # --- 3. UI RENDERING ---
