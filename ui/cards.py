@@ -11,40 +11,32 @@ def image_to_base64(img):
     return base64.b64encode(buffered.getvalue()).decode()
 
 def handle_upload(page_num):
-    print(f"DEBUG: Looking for key {uploader_key}...")
-    print(f"DEBUG: Keys currently in session_state: {list(st.session_state.keys())}")
-    """Processes image uploads: handles orientation, color mode, and sizing."""
-    v = st.session_state[f"v_{page_num}"]
-    uploader_key = f"u_{page_num}_v{v}"
-    uploaded_file = st.session_state.get(uploader_key)
+    # 1. Immediate visual feedback
+    st.toast(f"🌀 Callback triggered for Page {page_num}")
     
-    # Increase the limit to handle professional scans (default is ~89 megapixels)
-    Image.MAX_IMAGE_PIXELS = None 
+    # 2. Safely get the version
+    v = st.session_state.get(f"v_{page_num}", 0)
+    uploader_key = f"u_{page_num}_v{v}"
+    
+    # 3. List all keys to the UI so you can see them
+    all_keys = [k for k in st.session_state.keys() if k.startswith(f"u_{page_num}")]
+    st.write(f"Looking for: `{uploader_key}` | Found keys: `{all_keys}`")
+    
+    uploaded_file = st.session_state.get(uploader_key)
     
     if uploaded_file:
         try:
             img = Image.open(uploaded_file)
-            img = ImageOps.exif_transpose(img)
-            
-            # Convert to RGBA for consistency
-            img = img.convert("RGBA")
-            
-            # Use a faster Resampling for the UI thumbnail
+            img = ImageOps.exif_transpose(img).convert("RGBA")
             img.thumbnail((1600, 1600), Image.Resampling.LANCZOS)
             
             st.session_state.pages[page_num]["image"] = img
-            
-            # CRITICAL: Trigger a rerun so the UI actually shows the change
-            st.rerun() 
-            
+            st.toast("✅ Image processed!")
+            st.rerun()
         except Exception as e:
-            st.error(f"Critical Error on Page {page_num}: {e}")
-            # Log to terminal for a better paper trail
-            print(f"FAILED UPLOAD: Page {page_num} | {e}")
+            st.error(f"Error: {e}")
     else:
-        # If this fires, it means the file was too big or rejected by the server
-        print(f"DEBUG: No file found in {uploader_key}. Check maxUploadSize.")
-
+        st.warning(f"No file found for key: {uploader_key}")
 def toggle_spread(page_num):
     """Switches between single page and 2-page spread mode."""
     st.session_state.pages[page_num]["is_spread"] = not st.session_state.pages[page_num]["is_spread"]
