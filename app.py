@@ -10,7 +10,10 @@ apply_custom_css()
 
 # 2. Initialize Session State
 if "pages" not in st.session_state:
-    st.session_state.pages = {i: {"image": None, "rotation": 0, "scale_mode": "fit", "is_spread": False} for i in range(1, 9)}
+    st.session_state.pages = {
+        i: {"image": None, "rotation": 0, "scale_mode": "fill", "is_spread": False} 
+        for i in range(1, 9)
+    }
 
 # 3. Sidebar / Settings
 with st.sidebar:
@@ -26,7 +29,10 @@ with st.sidebar:
     
     st.divider()
     if st.button("🔥 Reset All Slots", type="primary", width="stretch"):
-        st.session_state.pages = {i: {"image": None, "rotation": 0, "scale_mode": "fit", "is_spread": False} for i in range(1, 9)}
+        st.session_state.pages = {
+            i: {"image": None, "rotation": 0, "scale_mode": "fill", "is_spread": False} 
+            for i in range(1, 9)
+        }
         st.rerun()
 
 st.title("🎨 Garford Zine Builder")
@@ -45,57 +51,65 @@ st.divider()
 # 5. PDF Generation Trigger
 if st.button("🚀 Generate Zine PDF", width="stretch", type="primary"):
     ready_pages = {}
-    
-    # Map page numbers to their horizontal column (0-3)
     layout_cols = {5:0, 4:1, 3:2, 2:3, 6:0, 7:1, 8:2, 1:3}
     
-    with st.spinner("Assembling your zine..."):
+    pages_to_process = [n for n, d in st.session_state.pages.items() if d["image"]]
+    total_steps = len(pages_to_process)
+
+    if total_steps == 0:
+        st.error("Please upload images first!")
+    else:
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
+        # Points conversion for Letter Landscape
         slot_w = (11 * 72) / 4 
         slot_h = (8.5 * 72) / 2
 
-        for num, data in st.session_state.pages.items():
-            if data["image"]:
-                is_spread = data["is_spread"]
-                col = layout_cols[num]
-                
-                usable_h = slot_h - (margin * 2)
-                
-                if is_spread:
-                    # Spreads touch the left and right paper edges
-                    usable_w = (slot_w * 2) - (margin * 2)
+        for i, num in enumerate(pages_to_process):
+            data = st.session_state.pages[num]
+            status_text.text(f"Processing Page {num}...")
+            
+            is_spread = data.get("is_spread", False)
+            col = layout_cols[num]
+            
+            usable_h = slot_h - (margin * 2)
+            
+            if is_spread:
+                usable_w = (slot_w * 2) - (margin * 2)
+            else:
+                if col in [0, 3]:
+                    usable_w = slot_w - margin - gutter
                 else:
-                    # Outer columns (0,3) have one margin and one gutter
-                    # Inner columns (1,2) have two gutters (no margin)
-                    if col in [0, 3]:
-                        usable_w = slot_w - margin - gutter
-                    else:
-                        usable_w = slot_w - (gutter * 2)
+                    usable_w = slot_w - (gutter * 2)
 
-                processed_img, w, h = process_image(
-                    data["image"], 
-                    data["rotation"], 
-                    data["scale_mode"], 
-                    usable_w, 
-                    usable_h
-                )
-                
-                ready_pages[num] = {
-                    "image": processed_img,
-                    "display_size": (w, h),
-                    "is_spread": is_spread,
-                    "col": col
-                }
-        
-        if ready_pages:
-            pdf_bytes = create_zine_pdf(ready_pages, show_guides, project_title, margin, gutter)
-            st.success("Zine Ready!")
-            clean_name = project_title.replace(" ", "_") if project_title else "My_Zine"
-            st.download_button(
-                label="📥 Download PDF",
-                data=pdf_bytes,
-                file_name=f"{clean_name}.pdf",
-                width="stretch",
-                mime="application/pdf"
+            # Called using the simple 'process_image' name
+            processed_img, w, h = process_image(
+                data["image"], 
+                data["scale_mode"], 
+                usable_w, 
+                usable_h
             )
-        else:
-            st.error("Please upload images first!")
+            
+            ready_pages[num] = {
+                "image": processed_img,
+                "display_size": (w, h),
+                "is_spread": is_spread
+            }
+            
+            progress_bar.progress((i + 1) / total_steps)
+
+        status_text.text("Finalizing PDF layout...")
+        pdf_bytes = create_zine_pdf(ready_pages, show_guides, project_title, margin, gutter)
+        
+        progress_bar.empty()
+        status_text.empty()
+        st.success("Zine Ready!")
+        
+        clean_name = project_title.replace(" ", "_") if project_title else "My_Zine"
+        st.download_button(
+            label="📥 Download PDF",
+            data=pdf_bytes,
+            file_name=f"{clean_name}.pdf",
+            mime="application/pdf"
+        )

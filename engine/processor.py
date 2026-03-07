@@ -1,27 +1,23 @@
-from PIL import Image, ImageOps
+from PIL import Image
 import io
 
-def process_image(image_bytes, rotation_angle, scale_mode, target_w, target_h):
-    img = Image.open(image_bytes)
-    img = ImageOps.exif_transpose(img) 
-    img = img.convert("RGB")
-    
-    if rotation_angle != 0:
-        img = img.rotate(-rotation_angle, expand=True)
-    
+def process_image(pil_img, scale_mode, target_w, target_h):
+    # Work on a copy to keep the original state clean
+    img = pil_img.copy()
     img_w, img_h = img.size
     
+    # Calculate scale factor
     if scale_mode == "fit":
-        # Fit to the NEW target width (which is slot_w * 2 for spreads)
         scale = min(target_w / img_w, target_h / img_h)
-    else: # "fill"
+    else: # fill
         scale = max(target_w / img_w, target_h / img_h)
         
     new_w, new_h = img_w * scale, img_h * scale
     
-    # Return processed image as BytesIO for ReportLab
+    # Pre-compressing for speed and smaller PDF size
+    # JPEG at 85% with optimization is very fast for local processing
     buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=95)
+    img.save(buf, format="JPEG", quality=85, optimize=True)
     buf.seek(0)
     
-    return buf, new_w, new_h
+    return Image.open(buf), new_w, new_h
