@@ -4,6 +4,11 @@ from ui.cards import page_card
 from ui.styles import apply_custom_css
 from engine.generator import create_zine_pdf
 
+# At the top of app.py
+print("--- APP REFRESHED ---")
+if "pages" in st.session_state:
+    print(f"Current v_1: {st.session_state.get('v_1')}")
+
 st.set_page_config(page_title="Garford Zine Builder", layout="centered")
 apply_custom_css()
 
