@@ -1,0 +1,21 @@
+# --- Virtual Environment ---
+.venv/
+
+# --- Python Cache ---
+__pycache__/
+*.py[cod]
+
+# --- Project Outputs & Uploads ---
+# Keep the repo clean of user data and generated files
+*.pdf
+uploads/
+temp/
+
+# --- System & IDE ---
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Development Artifacts ---
+*.log
+.env

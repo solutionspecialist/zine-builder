@@ -1,0 +1,9 @@
+[server]
+
+# Increase timeout for mobile photo picking
+# Default is 120 seconds; 300 gives a 5-minute buffer
+disconnectedSessionTTL = 300
+
+# Enable compression to make the image upload faster
+enableCORS = false
+enableXsrfProtection = false
